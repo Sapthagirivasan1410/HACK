@@ -1,0 +1,43 @@
+fprintf('Loading HACK.mat...\n');
+load('HACK.mat')
+fprintf('Finished Loading.\n');
+
+%% Separate training data
+trainTestLabel = {data.trainTestLabel};
+trainIdx = find(strcmp(trainTestLabel,'Training'));
+
+failureType = {data.failureType};
+trainFailureType = failureType(trainIdx);
+
+%% Get unique defect types (excluding 'none')
+allTypes = unique(trainFailureType);
+defectTypes = setdiff(allTypes, {'none'});   % remove non-defective wafers
+
+fprintf('\nDefect Types considered:\n');
+disp(defectTypes)
+
+%% ======= DISPLAY ONE SAMPLE IMAGE FOR EACH DEFECT TYPE =======
+
+numTypes = length(defectTypes);
+figure('Name','One Sample Wafer from Each Defect Type');
+
+for i = 1:numTypes;
+
+    % Find first wafer of this defect type
+    idx = find(strcmp(trainFailureType, defectTypes{i}));
+    exampleIdx = trainIdx(idx(1));   % pick first example
+
+    waferMap = data(exampleIdx).waferMap;
+
+    subplot(ceil(numTypes/3), 3, i);  % arrange images nicely
+    imagesc(waferMap);
+    axis image off;
+
+    % Custom colormap
+    selfColorMap = [ 1 1 1; ... % empty -> white
+                     0 1 1; ... % good -> cyan
+                     1 0 1 ];   % defective -> magenta
+    colormap(selfColorMap);
+
+    title(defectTypes{i}, 'Interpreter','none');
+end
